@@ -50,7 +50,10 @@ sent any transaction, so its cloud journal can start empty. If that changes,
 migrate its complete journal and signing-state protection before switching hosts.
 The initial funding gate rejects wallets with unexplained prior nonces.
 
-Complete and retain the encrypted backup before funding. The same 0.01 ETH total
-budget, exact initial funding requirement and all execution limits still apply.
+Complete and retain the encrypted backup before funding. The approved half-funding operating budget is 0.012039647790757096 ETH total,
+including gas and deployment. The address-bound allocations in pilot_config.json
+exclude the reserved half from all execution balances, exposure and fee checks.
+The reserved ETH remains in the wallets; this is an application spending limit.
+Initial activation requires each configured allocation and no token deposits.
 Deployment, cloud environment configuration and funded execution are separate
 from a successful Docker build.

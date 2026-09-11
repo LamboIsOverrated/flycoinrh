@@ -56,10 +56,22 @@ class Execution:
         row=self.db.execute('SELECT value FROM metadata WHERE key=?',(key,)).fetchone()
         return json.loads(row[0]) if row else None
 
+    def allocation(self, fly):
+        allocations = self.cfg.get('funding_allocations')
+        if not allocations:
+            return int(self.cfg['per_fly_budget_wei']), 0
+        a = allocations[fly]
+        if a['address'].lower() != self.wallets.public()[fly]['address'].lower():
+            raise ValueError('Budget wallet mismatch')
+        return int(a['budget_wei']), int(a['protected_wei'])
+
+    def funding_matches(self, rows):
+        return all(w['eth_wei'] == self.allocation(w['id'])[0] and w['pons_units'] == 0 for w in rows)
+
     def balances(self):
         block=self.rpc.call('eth_blockNumber')
         return [{'id':w['id'],'name':w['name'],'address':w['address'],
-                 'eth_wei':int(self.rpc.call('eth_getBalance',[w['address'],block]),16),
+                 'eth_wei':int(self.rpc.call('eth_getBalance',[w['address'],block]),16)-self.allocation(w['id'])[1],
                  'pons_units':self.rpc.view(TOKEN,'balanceOf(address)',['uint256'],['address'],[w['address']],block)[0],
                  'block':int(block,16)} for w in self.wallets.public()]
 
@@ -75,9 +87,9 @@ class Execution:
         if not backup_ready(self.wallets):raise PermissionError('Encrypted wallet backup required')
         self.verify_code()
         if not self.meta('initial_funding'):
-            rows=self.balances(); budget=int(self.cfg['per_fly_budget_wei'])
-            if any(w['eth_wei']!=budget or w['pons_units']!=0 for w in rows):
-                raise PermissionError('Awaiting exactly 0.001 ETH per fly and no token deposits')
+            rows=self.balances()
+            if not self.funding_matches(rows):
+                raise PermissionError('Awaiting the approved per-wallet allocation and no token deposits')
             if sum(w['eth_wei'] for w in rows)>int(self.cfg['total_budget_wei']):raise ValueError('Budget exceeded')
             if any(int(self.rpc.call('eth_getTransactionCount',[w['address'],'latest']),16)!=0 for w in rows):
                 raise ValueError('Unexpected wallet history before activation')

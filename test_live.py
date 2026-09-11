@@ -25,6 +25,32 @@ class LiveTests(unittest.TestCase):
         self.rpc=FakeRpc();self.e=Execution(self.rpc,Wallets(),self.path)
     def tearDown(self):self.e.db.close();self.directory.cleanup()
 
+    def test_reserved_half_excluded_from_balances_and_activation(self):
+        self.e.cfg = {**self.e.cfg, 'funding_allocations': [
+            {'address': w['address'], 'budget_wei': '1000', 'protected_wei': '1001'}
+            for w in self.e.wallets.public()]}
+        def call(method, params=None):
+            return hex(100) if method == 'eth_blockNumber' else hex(2001)
+        with patch.object(self.rpc, 'call', side_effect=call), patch.object(self.rpc, 'view', return_value=(0,), create=True):
+            rows = self.e.balances()
+        self.assertTrue(self.e.funding_matches(rows))
+        self.assertEqual(sum(w['eth_wei'] for w in rows), 10000)
+        rows[0]['eth_wei'] -= 1
+        self.assertFalse(self.e.funding_matches(rows))
+
+    def test_gas_cannot_spend_reserved_half(self):
+        self.e.meta('initial_funding', {'amounts': [10**15]*10})
+        rows = [{**w, 'eth_wei': 10**14, 'pons_units': 0} for w in self.e.wallets.public()]
+        def call(method, params=None):
+            return '0x' if method == 'eth_call' else hex(1000)
+        with patch.object(self.e, 'gate'), patch.object(self.e, 'reconcile'), patch.object(self.e, 'balances', return_value=rows), patch.object(self.e, 'construct', return_value={'to': TOKEN, 'value': 0, 'data': '0x', 'expected_gain': 0}), patch.object(self.rpc, 'call', side_effect=call):
+            # Exit operations bypass drawdown checks but still cannot consume the reserve.
+            rows[0]['pons_units'] = 1
+            with patch('live_execution.sell_quote', return_value=0):
+                with self.assertRaisesRegex(ValueError, 'Gas reserve'):
+                    self.e.submit(0, 'approve_pons', 'reserve-test', amount=1)
+        self.assertEqual(self.e.db.execute('SELECT COUNT(*) FROM transactions').fetchone()[0], 0)
+
     def test_disabled_gate_before_network_or_signature(self):
         with self.assertRaises(PermissionError):self.e.submit(0,'buy_pons','test',amount=10**14)
         self.assertEqual(self.e.db.execute('SELECT COUNT(*) FROM transactions').fetchone()[0],0)

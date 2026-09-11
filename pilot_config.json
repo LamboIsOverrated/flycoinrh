@@ -1,8 +1,8 @@
 {
   "chain_id": 4663,
   "broadcast_enabled": true,
-  "total_budget_wei": "10000000000000000",
-  "per_fly_budget_wei": "1000000000000000",
+  "total_budget_wei": "12039647790757096",
+  "per_fly_budget_wei": "1204071416275708",
   "gas_reserve_wei": "200000000000000",
   "max_trade_wei": "100000000000000",
   "max_slippage_bps": 100,
@@ -11,5 +11,57 @@
   "max_total_fee_bps": 500,
   "factory": "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e",
   "verified_factory_codehash": "0x89a27da6f703e0a7cdd4f233e7cb57604ff75b164530962d3ff7cf8483a67d84",
-  "approved_tokens": []
+  "approved_tokens": [],
+  "funding_allocations": [
+    {
+      "address": "0xcE6c65b9EcADe8e9CD7a87151DB80F1dAd1a6484",
+      "budget_wei": "1203824252591757",
+      "protected_wei": "1203824252591757"
+    },
+    {
+      "address": "0x02165078E78eC3790e29FD99aF92591eD488CD82",
+      "budget_wei": "1204071416275708",
+      "protected_wei": "1204071416275709"
+    },
+    {
+      "address": "0x0593eB757714b72B92eA8BC1444fc23935Bf7E73",
+      "budget_wei": "1204064818915708",
+      "protected_wei": "1204064818915709"
+    },
+    {
+      "address": "0x955b13045b1fb9B97fdf5F55260cC2033CD93436",
+      "budget_wei": "1203816949631757",
+      "protected_wei": "1203816949631757"
+    },
+    {
+      "address": "0xd56bBf2d249E3608b31d0d4782957f28c087E1a3",
+      "budget_wei": "1203824252591757",
+      "protected_wei": "1203824252591757"
+    },
+    {
+      "address": "0xbD6Fa8c38B7FC3AACb0c46c0F0B8d7119d21EeAC",
+      "budget_wei": "1204071416235789",
+      "protected_wei": "1204071416235790"
+    },
+    {
+      "address": "0xd566A21DE02f55D17d38dE247254375659c3fafC",
+      "budget_wei": "1204046684995708",
+      "protected_wei": "1204046684995709"
+    },
+    {
+      "address": "0xf03c39De73013C2862a2C73b48b65c47436dbDd9",
+      "budget_wei": "1204057061931447",
+      "protected_wei": "1204057061931447"
+    },
+    {
+      "address": "0x70Bf4077c75338eCF2ADc9a748A2dc703dDc462C",
+      "budget_wei": "1204046684995708",
+      "protected_wei": "1204046684995709"
+    },
+    {
+      "address": "0xdbFd0E2982795FF5fB33a05bf9Fc51dc722f1ca3",
+      "budget_wei": "1203824252591757",
+      "protected_wei": "1203824252591757"
+    }
+  ]
 }

@@ -49,7 +49,7 @@ class Pilot:
             brains=BrainGarden()
         self.brains=brains
         self.state=self.journal.load() or {'mode':'neural_paper','tick':0,'updated_at':None,
-              'flies':[{**w,'paper_cash_wei':int(self.config['per_fly_budget_wei']),
+              'flies':[{**w,'paper_cash_wei':int(self.config['funding_allocations'][w['id']]['budget_wei']) if self.config.get('funding_allocations') else int(self.config['per_fly_budget_wei']),
                         'goods':[5000,2000] if w['id']%2==0 else [2000,5000],
                         'telemetry':None,'resource_income_wei':0,'resource_spending_wei':0} for w in self.wallets]}
         if [f['address'] for f in self.state['flies']] != [w['address'] for w in self.wallets]:

@@ -18,7 +18,14 @@ def load_config():
     config = json.loads((ROOT / 'pilot_config.json').read_text())
     if type(config['broadcast_enabled']) is not bool or config['chain_id'] != 4663:
         raise ValueError('This pilot only supports Robinhood mainnet with an explicit broadcast flag')
-    if int(config['total_budget_wei']) > 10**16 or int(config['per_fly_budget_wei']) * 10 > int(config['total_budget_wei']):
+    allocations = config.get('funding_allocations')
+    if allocations:
+        if (len(allocations) != 10 or len({a['address'].lower() for a in allocations}) != 10
+                or any(int(a['budget_wei']) <= 0 or int(a['protected_wei']) < int(a['budget_wei']) for a in allocations)
+                or sum(int(a['budget_wei']) for a in allocations) != int(config['total_budget_wei'])
+                or int(config['total_budget_wei']) > 12039647790757096):
+            raise ValueError('Configuration exceeds the approved half-funding budget')
+    elif int(config['total_budget_wei']) > 10**16 or int(config['per_fly_budget_wei']) * 10 > int(config['total_budget_wei']):
         raise ValueError('Configuration exceeds the approved 0.01 ETH pilot budget')
     return config
 

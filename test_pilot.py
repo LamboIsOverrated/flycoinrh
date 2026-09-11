@@ -46,7 +46,7 @@ class Tests(unittest.TestCase):
             path=Path(d)/'journal.sqlite';wallets=[{'id':i,'name':str(i),'address':'0x'+format(i+1,'040x')} for i in range(10)]
             p=Pilot(MarketBrains(),Journal(path),wallets,PaperMarket());p.tick()
             self.assertEqual(len(p.state['events']),10)
-            self.assertEqual(sum(f['paper_cash_wei'] for f in p.state['flies'])+p.state['paper_external_net_wei'],10**16)
+            self.assertEqual(sum(f['paper_cash_wei'] for f in p.state['flies'])+p.state['paper_external_net_wei'],int(p.config['total_budget_wei']))
             q=Pilot(MarketBrains(),Journal(path),wallets,PaperMarket());self.assertEqual(p.state,q.state)
             q.journal.db.close();p.journal.db.close()
 
@@ -74,7 +74,7 @@ class Tests(unittest.TestCase):
             path=Path(d)/'test.sqlite';wallets=[{'id':i,'name':str(i),'address':'0x'+format(i+1,'040x')} for i in range(10)]
             p=Pilot(FakeBrains(),Journal(path),wallets)
             for _ in range(10):p.tick()
-            self.assertEqual(sum(f['paper_cash_wei'] for f in p.state['flies']),10**16)
+            self.assertEqual(sum(f['paper_cash_wei'] for f in p.state['flies']),int(p.config['total_budget_wei']))
             restarted=Pilot(FakeBrains(),Journal(path),wallets)
             self.assertEqual(restarted.state,p.state)
             with self.assertRaises(ValueError):restarted.journal.save(p.state,[],[])

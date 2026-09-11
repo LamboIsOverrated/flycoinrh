@@ -66,7 +66,7 @@ class Garden:
         funded=e.meta('initial_funding')
         ready=backup_ready(e.wallets) and e.cfg['broadcast_enabled']
         if not ready:self.status='waiting_for_backup' if not backup_ready(e.wallets) else 'observing'
-        elif not funded and any(r['eth_wei']!=int(e.cfg['per_fly_budget_wei']) or r['pons_units'] for r in rows):self.status='waiting_for_funding'
+        elif not funded and not e.funding_matches(rows):self.status='waiting_for_funding'
         else:
             e.gate();e.rebroadcast()
             if not e.settlement():
@@ -92,7 +92,7 @@ class Garden:
             if previous is not None:self.brains.reward(i,(worth-previous)/10**18)
             e.meta('worth-'+str(i),worth)
             if self.status!='running' or e.open_tx(i):continue
-            baseline=int(e.cfg['per_fly_budget_wei'])-((e.meta('setup_cost_wei') or 0) if i==0 else 0)
+            baseline=e.allocation(i)[0]-((e.meta('setup_cost_wei') or 0) if i==0 else 0)
             stop=worth*10000<baseline*(10000-e.cfg['max_drawdown_bps'])
             pending_exit=e.meta('exit-'+str(i))
             if not row['pons_units'] and pending_exit:e.meta('exit-'+str(i),False)
