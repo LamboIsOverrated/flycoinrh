@@ -1,4 +1,4 @@
-# Fly Garden
+# Garden of Flies
 
 Work in progress on top of fruitflydev/flycoinrh. Upstream files are preserved.
 
