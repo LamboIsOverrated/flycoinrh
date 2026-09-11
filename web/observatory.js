@@ -22,13 +22,13 @@ async function refresh(){
   $('trades').textContent=d.transactions.filter(t=>t.status==='confirmed').length;
   $('flies').replaceChildren(...d.wallets.map(w=>{
    const card=node('article','','fly'),portrait=node('div','🪰','portrait');portrait.setAttribute('aria-hidden','true');card.append(portrait,node('h3',w.name));
-   const link=node('a',w.address.slice(0,7)+'…'+w.address.slice(-5),'address');link.href='https://explorer.chain.robinhood.com/address/'+w.address;link.target='_blank';link.rel='noreferrer';card.append(link);
+   const link=node('a',w.address.slice(0,7)+'…'+w.address.slice(-5),'address');link.href='https://rh-scan.com/address/'+w.address;link.target='_blank';link.rel='noreferrer';card.append(link);
    card.append(node('div',units(w.eth_wei)+' ETH','money'),node('div',units(w.pons_units,4)+' PONS','money'));
    const t=h?.telemetry?.find(t=>t.id===w.id),brain=node('div','','neural');
    brain.textContent=t&&age(t.measured_at)<600?`${t.firing.toLocaleString()} firing neurons · ${t.action.replaceAll('_',' ')} · measured ${age(t.measured_at)}s ago`:'No recent neural measurement';card.append(brain);return card;
   }));
   const names={deploy:'Garden deployment',buy_pons:'Bought PONS',sell_pons:'Sold PONS for ETH',approve_pons:'Approved an exact PONS exit',buy_resource:'Bought a resource',produce:'Produced resources',harvest:'Gathered resources'};
-  $('events').replaceChildren(...d.transactions.map(t=>{const row=node('div','','event'),left=node('div','');left.append(node('span',d.wallets[t.fly].name+' · '+(names[t.kind]||t.kind)),node('small',t.status+' · '+(t.block?'block '+t.block:'waiting for a receipt')));const a=node('a','View transaction ↗');a.href='https://explorer.chain.robinhood.com/tx/'+t.hash;a.target='_blank';a.rel='noreferrer';row.append(left,a);return row;}));
+  $('events').replaceChildren(...d.transactions.map(t=>{const row=node('div','','event'),left=node('div','');left.append(node('span',d.wallets[t.fly].name+' · '+(names[t.kind]||t.kind)),node('small',t.status+' · '+(t.block?'block '+t.block:'waiting for a receipt')));const a=node('a','View transaction ↗');a.href='https://rh-scan.com/tx/'+t.hash;a.target='_blank';a.rel='noreferrer';row.append(left,a);return row;}));
   if(!d.transactions.length)$('events').append(node('p','No garden transactions have been submitted. This feed fills only with actual transaction hashes.'));
  }catch(error){document.body.classList.add('stale');$('connection').textContent='Chain connection unavailable';$('error').textContent=error.message;}finally{busy=false;}
 }
