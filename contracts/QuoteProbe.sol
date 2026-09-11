@@ -10,6 +10,8 @@ interface IQuoteRouter {
         uint256 amountIn; uint256 amountOutMinimum; uint160 sqrtPriceLimitX96;
     }
     function exactInputSingle(Params calldata params) external payable returns (uint256);
+    function multicall(uint256 deadline, bytes[] calldata calls) external payable returns (bytes[] memory);
+    function unwrapWETH9(uint256 minimum, address recipient) external payable;
 }
 interface IQuotePool {
     function swap(address recipient, bool zeroForOne, int256 amountSpecified, uint160 limit, bytes calldata data)
@@ -17,6 +19,22 @@ interface IQuotePool {
 }
 /// Used ONLY as transient eth_call code through a state override. Never deployed.
 contract QuoteProbe {
+    receive() external payable {}
+    function roundTripEth(address router,address weth,address token,uint24 fee,uint256 amount)
+        external returns(uint256 bought,uint256 returnedEth)
+    {
+        bytes[] memory buy = new bytes[](1);
+        buy[0]=abi.encodeCall(IQuoteRouter.exactInputSingle,(IQuoteRouter.Params(weth,token,fee,address(this),amount,1,0)));
+        bytes[] memory result=IQuoteRouter(router).multicall{value:amount}(block.timestamp+30,buy);
+        bought=abi.decode(result[0],(uint256));
+        require(IQuoteToken(token).approve(router,bought),"approve");
+        bytes[] memory sale=new bytes[](2);
+        sale[0]=abi.encodeCall(IQuoteRouter.exactInputSingle,(IQuoteRouter.Params(token,weth,fee,router,bought,1,0)));
+        sale[1]=abi.encodeCall(IQuoteRouter.unwrapWETH9,(1,address(this)));
+        uint256 beforeBalance=address(this).balance;
+        IQuoteRouter(router).multicall(block.timestamp+30,sale);
+        returnedEth=address(this).balance-beforeBalance;
+    }
     address private expectedPool;
     function quoteSell(address pool, uint256 units) external returns (uint256 output) {
         require(units > 0 && units < uint256(type(int256).max), "amount");

@@ -1,6 +1,6 @@
 {
   "chain_id": 4663,
-  "broadcast_enabled": false,
+  "broadcast_enabled": true,
   "total_budget_wei": "10000000000000000",
   "per_fly_budget_wei": "1000000000000000",
   "gas_reserve_wei": "200000000000000",

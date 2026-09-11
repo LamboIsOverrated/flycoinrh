@@ -1,4 +1,4 @@
-const {test}=require('node:test');const assert=require('node:assert/strict');const {Economy}=require('./dist/engine.js');
+const {test}=require('node:test');const assert=require('node:assert/strict');const {Economy}=require('./experiments/engine.js');
 test('ten separate accounts, no initial exposure',()=>{const e=new Economy();assert.equal(e.flies.length,10);e.flies[0].goods[0]=99;assert.notEqual(e.flies[1].goods[0],99);assert(e.audit().ethConserved);});
 test('voluntary resource exchange conserves cash and goods',()=>{const e=new Economy(),b=e.flies[0],s=e.flies[1],sum=b.cash+s.cash,goods=b.goods[1]+s.goods[1];assert(e.trade(b,s));assert.equal(b.cash+s.cash,sum);assert.equal(b.goods[1]+s.goods[1],goods);assert.equal(e.trades,1);});
 test('50 percent is aggregate, not per trade',()=>{const e=new Economy(),f=e.flies[0];assert(e.buy(f,0,.3));assert.equal(e.buy(f,1,.3),false);assert.equal(e.buy(f,1,NaN),false);assert.equal(e.sell(f,0,1e9),false);assert(e.audit().capRespected);});

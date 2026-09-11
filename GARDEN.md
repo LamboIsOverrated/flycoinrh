@@ -1,99 +1,86 @@
 # Garden of Flies
 
-Work in progress on top of fruitflydev/flycoinrh. Upstream files are preserved.
+The published website is a read-only observatory. It reads actual ETH and PONS
+balances and pool prices through a server-side RPC connection. The title is
+exactly Garden of Flies. No visitor controls, paper balances, generated trades,
+or simulated prices are served. Missing and stale data are identified.
 
-## Run the paper garden
+## Automatic service
 
-Serve `dist/` with any static HTTP server and open its index page. No dependency
-installation or build is needed. Click Run garden, advance one day, inspect a fly,
-filter trades, or export the current simulation. State is local to the open tab;
-reloading resets it. Each fly begins with one paper ETH. No funds are required.
+Install-Garden-Service.ps1 registers and starts the Garden of Flies Windows task
+under the real Windows user. It starts at sign-in and restarts failed processes.
+The computer must remain awake and connected. Opening or closing the website
+does not affect it. Missing heartbeats are identified after six minutes; neural
+measurements expire from display after ten minutes.
 
-`dist/engine.js` is the executable browser/Node simulation. `garden.py` is a
-separate Decimal-based accounting foundation for future Python integration.
-The browser does not call it. Tests: `node --test test-economy.cjs` and
-`python -m unittest test_garden`.
+live_runner.py reads actual mainnet observations and maintains ten independent
+connectome checkpoints. The economic observation and action mapping is programmed,
+not evidence that flies understand finance. It does not load earlier paper state.
+PONS actions have a one-hour cooldown except for required exits. Resource buys
+must have enough expected price margin for buy gas and an 80,000-gas production
+allowance. Resources have internal utility, not external customer demand.
 
-Implemented: ten independent simulated accounts; growers and spinners produce
-and exchange nectar/silk; perishable inventories; inventory-sensitive prices;
-buyers compare input prices with expected production revenue. Three fictional
-tokens trade through constant-product pools with a 0.3% fee and price impact.
-Initial pools each hold ten paper ETH and 10,000 tokens; an external simulated
-trader has twenty paper ETH. The 60 total paper ETH is conserved. Token supply
-is also conserved. Valuations are spot marks, not guaranteed liquidation proceeds.
-Resource inventory is excluded from financial net worth.
+## Backup and funding
 
-Token exposure is capped at 50% after each completed day, across all holdings.
-The agents buy toward 45% and rebalance toward 48% to leave a buffer. Intra-day
-price changes can temporarily breach the limit before rebalancing. Paper amounts
-use JavaScript floating-point numbers; live execution must use integer on-chain
-units. No gas costs are modeled, so these results do not estimate live returns.
+The initial ceiling is 0.01 ETH total, exactly 0.001 ETH in each of ten wallets,
+on Robinhood Chain 4663. Addresses appear on the website and in web/wallets.json.
+Do not fund before backup completes. Backup-Garden.ps1 opens a local password
+dialog, creates ten portable encrypted keystores, verifies them by decryption,
+and offers to save a separate copy. The password never enters the website,
+chat, command arguments, or a disk file. Retain the password and backup separately.
 
-The browser's three token names are fictional, not Pons listings. Its agents use
-explicit rules. The separate local neural pilot described below now has real
-wallets and measured connectome activity. No mainnet transactions have been sent.
+Signing keys are DPAPI-encrypted under the real Windows account. RSA-OAEP moved
+them from the setup account without writing plaintext keys or changing addresses.
+The previous encrypted vault is retained privately. All keys, runtime settings,
+and backup files remain ignored and excluded from website output.
 
-Accepted product decisions: voluntary economic exchange rather than duels;
-simulated funds first, with the user informed before funding becomes necessary.
-All eventual wallets will belong to this experiment. Competition transfers only
-funds committed to its rules. The present economy is a model of internal utility;
-it has no external customers, real demand, or guaranteed growth.
+The runner waits for verified backup and exact funding. It then deploys the
+shared economy from Clover and starts automatically. Deployment uses the same
+0.01 ETH budget. Its conservative estimate was about 0.00046 ETH; the maximum
+setup fee is 0.0006 ETH. Actual setup gas reduces Clover's trading baseline.
+Global loss accounting still includes setup cost. No additional funding is used.
 
-## Local neural pilot
+## Live execution and recovery
 
-`Start-Pilot.ps1` opens a loopback-only server at http://127.0.0.1:8767.
-It starts paused; Run neural pilot and One round use the actual downloaded
-connectome. Each of ten instances has independent membrane state and learning.
-The SQLite journal saves financial state, brain checkpoints and events in one
-transaction. A failed round stops the process; restart reloads the last checkpoint.
-The hosted `pilot.html` is a saved report, not a running cloud brain or remote
-control. It displays the report timestamp and disables controls.
+live_execution.py permits only the compiled settlement deployment, garden
+resource actions, exact PONS approvals, and the selected Uniswap V3 route.
+Token: 0x39dBED3a2bd333467115dE45665cC57F813C4571.
+Pool: 0x10cc6bd38112cac182db90b6a71d8bb5939526ba.
+The router matches Uniswap's published SwapRouter02 1.3.1 artifact with
+constructor address substitutions. Pinned market runtimes are rechecked before
+signing. Artifact matching is not an independent security audit.
 
-The current paper budget is 0.01 ETH total, 0.001 per fly. The local DPAPI vault
-contains ten real accounts, bound to this Windows user. No secrets go into the
-website. Before any eventual funding, run `Backup-Wallets.ps1` interactively to
-create a portable password-encrypted backup and move a copy somewhere safe.
-Do not provide the backup password in chat. Funding is not ready yet.
+Limits: 0.0001 ETH per PONS purchase, 1% slippage, 0.0002 ETH cash reserve,
+0.00002 ETH ordinary transaction fee ceiling, 50% token exposure based on sell
+quotes, and 20% loss stops. Exits remain available after stops if gas permits.
+The pool charges 1% each way. High gas or failed checks can prevent transactions
+after funding. Price changes may breach exposure targets between observations;
+the next eligible action exits the position. No return is promised.
 
-Selected PONS token: `0x39dBED3a2bd333467115dE45665cC57F813C4571`.
-Pool: `0x10cc6bd38112cac182db90b6a71d8bb5939526ba`, PONS/WETH, Uniswap V3,
-1% fee per swap. `pilot_v3.py` checks chain, canonical pool, token ordering,
-launcher configuration, expired launch restrictions, active liquidity, and a
-real buy/sell simulation. The probe exists only in an `eth_call` state override;
-it is never deployed, funded, or signed. An immediate 0.0001 ETH round trip
-returned approximately 0.00009801 WETH before gas at the tested block.
+Signed transactions are encrypted and committed to SQLite before submission.
+One unresolved transaction per fly is permitted. Uncertain sends reuse the same
+bytes, nonce and hash. Recovery handles missing/reappearing receipts and waits
+for 12 matching-block confirmations. Unknown nonce use stops progress.
+Very deep reorgs after that threshold are outside automatic recovery policy.
+Deployment metadata is recoverable from the confirmed receipt after a crash.
 
-`verify_v3_router.py` compares the complete router runtime with Uniswap's
-published 1.3.1 artifact. Only full PUSH32 zero address placeholders may be
-substituted with its four immutable address values. This is artifact matching,
-not an independent security audit. Source: https://github.com/Uniswap/swap-router-contracts.
+Actual balances remain the financial source of truth. Planned actions are never
+reported as executed by a neural checkpoint. The website independently reads
+receipts and shows only the recent feed, not an invented lifetime trade count.
 
-`pilot_paper_market.py` buys on a neural inspect-market action with a ten-round
-cooldown; financial sizing is explicitly programmed. It uses mainnet quotes,
-integer amounts, a 0.0001 ETH per-trade ceiling, and a 0.0002 ETH cash reserve.
-It sells positions if needed to restore the 50% limit or stop after 20% losses.
-Resource inventory is excluded from net worth. Paper PONS is valued using a
-current sell quote. External paper-market cash flows are recorded separately
-so total ETH accounting reconciles. Quotes occur sequentially, not at one
-atomic portfolio block. Prices may move after a check. Paper trades do not
-modify on-chain reserves and do not model gas; they do not forecast profits.
+Emergency stop: create .garden/STOP. Stop the Windows task for an immediate
+process stop. Removing STOP does not itself start the task; start it locally or
+sign in again. No visitor-facing execution or stop API exists.
 
-Command-line paper run: `.venv/Scripts/python.exe pilot_runtime.py --steps 3 --market-quotes`.
-Setup/read checks: `.venv/Scripts/python.exe pilot_runtime.py --setup`.
-Update hosted snapshot: `.venv/Scripts/python.exe export_pilot_report.py`.
-No command above sends transactions.
+## Development
 
-## Still required before funding
+Build with node build-observatory.cjs. Only web assets and public addresses are
+embedded in dist/server/index.js. D1 stores a bounded authenticated heartbeat.
+RPC and publisher keys are Sites runtime secrets. The local publisher includes
+public telemetry only. Offline paper code is retained solely for engineering
+tests and is not served by the website.
 
-The neural runner is paper-only. Live PONS buys, approvals, sales, unwraps,
-receipt-driven portfolio accounting, and crash recovery are not integrated.
-`pilot_executor.py` is an experimental, disabled resource-settlement component,
-not a completed live trading runner. Do not enable it as a funding shortcut.
-The local-tested `FlyGarden.sol` resource contract has not been deployed.
-Portable encrypted backup and a complete live execution/recovery test remain
-required before a funded pilot. `ready_to_fund` intentionally remains false.
-
-Validation: Python accounting, quote-policy, wallet, persistence and router
-comparison tests; a local EVM resource-settlement test; ten neural rounds,
-including four paper PONS purchases in the last three rounds. Private runtime
-data, keys, RPC configuration, dependencies and chain evidence stay ignored.
+Checks: python -m unittest test_live test_pilot test_garden;
+node --test test-contract.cjs; node --test test-observatory.cjs.
+The full buy, exact approval, sale and native ETH unwrap was also exercised
+against mainnet through eth_call state overrides without sending transactions.

@@ -4,7 +4,7 @@ pragma solidity ^0.8.30;
 /// @notice Closed ten-participant resource economy. No admin withdrawal or mint.
 /// Resources have utility only inside this experiment; ETH payments go to sellers.
 contract FlyGarden {
-    uint256 public constant MAX_PRICE = 0.00001 ether;
+    uint256 public constant MAX_PRICE = 0.00005 ether;
     uint256 public constant HARVEST_DELAY = 120; // seconds, not an ETH reward
     mapping(address => uint8) public member; // 1..10, zero means not a participant
     mapping(address => mapping(uint8 => uint256)) public resourceBalance;
@@ -30,7 +30,7 @@ contract FlyGarden {
             uint8 kind = i % 2;
             resourceBalance[fly][kind] = 5;
             resourceBalance[fly][1-kind] = 2;
-            ask[fly] = 0.000001 ether;
+            ask[fly] = 0.00005 ether;
         }
     }
 

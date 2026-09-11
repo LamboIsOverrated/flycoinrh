@@ -1,0 +1,52 @@
+[
+  {
+    "id": 0,
+    "name": "Clover",
+    "address": "0xcE6c65b9EcADe8e9CD7a87151DB80F1dAd1a6484"
+  },
+  {
+    "id": 1,
+    "name": "Fig",
+    "address": "0x02165078E78eC3790e29FD99aF92591eD488CD82"
+  },
+  {
+    "id": 2,
+    "name": "Juniper",
+    "address": "0x0593eB757714b72B92eA8BC1444fc23935Bf7E73"
+  },
+  {
+    "id": 3,
+    "name": "Miso",
+    "address": "0x955b13045b1fb9B97fdf5F55260cC2033CD93436"
+  },
+  {
+    "id": 4,
+    "name": "Olive",
+    "address": "0xd56bBf2d249E3608b31d0d4782957f28c087E1a3"
+  },
+  {
+    "id": 5,
+    "name": "Pip",
+    "address": "0xbD6Fa8c38B7FC3AACb0c46c0F0B8d7119d21EeAC"
+  },
+  {
+    "id": 6,
+    "name": "Sage",
+    "address": "0xd566A21DE02f55D17d38dE247254375659c3fafC"
+  },
+  {
+    "id": 7,
+    "name": "Taro",
+    "address": "0xf03c39De73013C2862a2C73b48b65c47436dbDd9"
+  },
+  {
+    "id": 8,
+    "name": "Willow",
+    "address": "0x70Bf4077c75338eCF2ADc9a748A2dc703dDc462C"
+  },
+  {
+    "id": 9,
+    "name": "Zest",
+    "address": "0xdbFd0E2982795FF5fB33a05bf9Fc51dc722f1ca3"
+  }
+]

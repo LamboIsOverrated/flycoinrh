@@ -12,7 +12,7 @@ ROOT = Path(__file__).parent
 ZERO = '0x' + '0' * 40
 ALLOWED_RPC = frozenset({'eth_chainId', 'eth_blockNumber', 'eth_getBalance',
                         'eth_getCode', 'eth_call', 'eth_estimateGas', 'eth_gasPrice',
-                        'eth_getTransactionCount', 'eth_getTransactionReceipt', 'eth_getLogs'})
+                        'eth_getTransactionCount', 'eth_getTransactionReceipt', 'eth_getLogs', 'eth_getBlockByNumber'})
 
 def load_config():
     config = json.loads((ROOT / 'pilot_config.json').read_text())
@@ -166,7 +166,7 @@ def preflight(wallets):
     cfg = load_config()
     report = {'checked_at':time.time(),'broadcast_enabled':False,'chain_id':4663,
               'budget_wei':cfg['total_budget_wei'],'wallets':[{**w,'balance_wei':None} for w in wallets],
-              'blockers':['Live PONS execution and recovery are not integrated; sending remains disabled', 'A portable encrypted wallet backup is required before funding', 'The garden settlement contract has not been deployed'],
+              'blockers':[],
               'markets':[]}
     try:
         rpc=Rpc();rpc.validate_chain()
@@ -182,5 +182,9 @@ def preflight(wallets):
         report['markets'].append(json.loads(selected.read_text()))
     else:
         report['blockers'].append('Selected PONS market has not completed its quote check')
-    report['ready_to_fund']=False
+    from live_execution import backup_ready
+    if not backup_ready():report['blockers'].append('Complete the local portable encrypted wallet backup before funding')
+    if not cfg['broadcast_enabled']:report['blockers'].append('Automatic execution is disabled')
+    report['broadcast_enabled']=cfg['broadcast_enabled']
+    report['ready_to_fund']=not report['blockers'] and all(w['balance_wei']=='0' for w in report['wallets'])
     return report

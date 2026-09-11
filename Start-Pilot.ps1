@@ -1,3 +1,3 @@
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
-& "$PSScriptRoot/.venv/Scripts/python.exe" "$PSScriptRoot/pilot_server.py"
+& "$PSScriptRoot/Start-Garden.ps1"

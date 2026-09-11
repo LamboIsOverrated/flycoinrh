@@ -8,10 +8,8 @@ import time
 from eth_account import Account
 from pilot_wallets import Wallets,protect
 
-def main():
-    password=getpass('Choose a backup password (at least 16 characters): ')
-    if len(password)<16 or password!=getpass('Repeat the backup password: '):
-        raise ValueError('Passwords must match and contain at least 16 characters')
+def create_backup(password):
+    if len(password)<16:raise ValueError('Use at least 16 characters')
     records=[]
     for row in Wallets().records():
         key=protect(base64.b64decode(row['sealed']),True)
@@ -26,5 +24,14 @@ def main():
     (directory.parent/'backup-proof.json').write_text(json.dumps(proof,indent=2))
     print(f'Encrypted backup verified: {target}')
     print('Keep a copy somewhere separate from this computer and retain its password.')
+
+def main():
+    import sys
+    if '--stdin-password' in sys.argv:
+        password=sys.stdin.readline().rstrip('\r\n')
+    else:
+        password=getpass('Choose a backup password (at least 16 characters): ')
+        if password!=getpass('Repeat the backup password: '):raise ValueError('Passwords must match')
+    create_backup(password)
 
 if __name__=='__main__':main()
