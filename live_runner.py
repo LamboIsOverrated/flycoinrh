@@ -61,7 +61,12 @@ class Garden:
             except requests.RequestException:print('Website unreachable; local state retained',flush=True)
 
     def round_once(self):
-        e=self.execution;e.reconcile();rows=e.balances()
+        e=self.execution
+        if not e.meta('initial_funding') and any(int(e.rpc.call('eth_getTransactionCount',[w['address'],'latest']),16) for w in e.wallets.public()):
+            self.status='recovery_required';self.publish([])
+            from recover_chain import recover
+            recover(e)
+        e.reconcile();rows=e.balances()
         if self.brain_error:self.status='stopped';self.publish(rows,self.brain_error);return
         funded=e.meta('initial_funding')
         ready=backup_ready(e.wallets) and e.cfg['broadcast_enabled']
