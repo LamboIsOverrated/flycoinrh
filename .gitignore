@@ -16,6 +16,7 @@ __pycache__/
 *.webm
 .venv/
 .garden/
+Garden-of-Flies-wallet-backup*.json
 vendor/
 
 # trained gains are small and reproducible, but they ARE a result - keep them

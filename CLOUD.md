@@ -13,13 +13,16 @@ Use one replica. Attach a persistent volume at `/app/.garden` for the transactio
 journal and neural checkpoints. Do not mount over `/app`, `/app/build` or `/app/data`.
 Leave the Docker start command unchanged. Use `/healthz` as the health-check path;
 the service listens on the platform's `PORT` (8080 by default) and starts itself.
-This HTTP endpoint is health-only; the existing Sites website remains the viewer.
+The normal Railway domain serves the spectator website at `/`, live chain data
+at `/api/status`, and health checks at `/healthz`. The website works while the
+runner waits for backup or funding. It has no start button or signing controls.
 
 Required runtime secret:
 
 - `GARDEN_RPC_URL`: the authenticated Robinhood Chain mainnet RPC URL.
 
-For the existing website to receive neural activity:
+Optional, only to mirror neural activity to the separate Sites website (these
+settings are not needed for the Railway website):
 
 - `GARDEN_SITE_URL`: the existing Garden of Flies website URL.
 - `GARDEN_PUBLISHER_KEY`: the matching Sites heartbeat secret.

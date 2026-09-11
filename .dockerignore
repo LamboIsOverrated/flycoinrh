@@ -10,3 +10,6 @@
 !contracts/*.sol
 !web/
 !web/wallets.json
+!web/index.html
+!web/observatory.css
+!web/observatory.js
