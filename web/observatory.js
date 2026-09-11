@@ -13,8 +13,31 @@ function renderJournal(){
  if(!entries.length)$('events').append(node('p','Waiting for verified observations.'));
  if(journal.size>120){const keep=new Set(entries);for(const [key,e] of journal)if(!keep.has(e))journal.delete(key);}
 }
+function updateMap(d){
+ const root=$('map-flies');
+ if(root.querySelector('.map-loading'))root.replaceChildren();
+ for(const w of d.wallets){
+  let fly=$('map-fly-'+w.id);
+  if(!fly){
+   fly=node('button','','map-fly');fly.id='map-fly-'+w.id;fly.type='button';
+   const insect=node('img','','flying-portrait');insect.src='/fly-logo.png';insect.alt='';
+   fly.append(insect,node('strong',w.name),node('span','','map-caption'));
+   fly.addEventListener('click',()=>{const card=$('wallet-'+w.id);card.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});card.focus({preventScroll:true});});
+   root.append(fly);
+  }
+  const t=d.heartbeat?.telemetry?.find(t=>t.id===w.id);
+  const fresh=d.heartbeat&&age(d.heartbeat.observed_at)<360;
+  const recent=t&&age(t.measured_at)<600;
+  const pending=d.transactions.find(t=>t.fly===w.id&&['pending','confirming'].includes(t.status));
+  let label=!fresh?'Awaiting live report':d.heartbeat.status==='recovery_required'?'Paused · recovery':d.heartbeat.status!=='running'?'Waiting · '+(phases[d.heartbeat.status]||'observing'):pending?'Transaction '+pending.status:recent?(actions[t.action]?.[1]||'Measured: '+t.action):'Awaiting measurement';
+  fly.querySelector('.map-caption').textContent=label;
+  fly.setAttribute('aria-label',w.name+': '+label+'. View wallet details');
+  fly.classList.toggle('has-transaction',Boolean(pending));
+ }
+}
 function clock(){
  if(!lastData)return;
+ updateMap(lastData);
  const h=lastData.heartbeat,fresh=h&&age(h.observed_at)<360;
  $('live-clock').textContent='Chain observed '+age(lastData.observed_at)+'s ago · '+(h?'Runner reported '+age(h.observed_at)+'s ago':'No runner report')+' · next check in '+Math.max(0,5-age(lastRefresh))+'s';
  if(!fresh){$('phase').textContent='Runner offline or heartbeat unavailable';$('narration').textContent='Waiting for a fresh runner report. Last observations remain below.';}
@@ -39,7 +62,7 @@ async function refresh(){
   $('price').textContent=units(d.market.price_wei,8)+' ETH / PONS';
   $('trades').textContent=d.transactions.filter(t=>t.status==='confirmed').length;
   $('flies').replaceChildren(...d.wallets.map(w=>{
-   const card=node('article','','fly'),portrait=node('img','','portrait');portrait.src='/fly-logo.png';portrait.alt='';card.append(portrait,node('h3',w.name));
+   const card=node('article','','fly');card.id='wallet-'+w.id;card.tabIndex=-1;const portrait=node('img','','portrait');portrait.src='/fly-logo.png';portrait.alt='';card.append(portrait,node('h3',w.name));
    const link=node('a',w.address.slice(0,7)+'…'+w.address.slice(-5),'address');link.href='https://rh-scan.com/address/'+w.address;link.target='_blank';link.rel='noreferrer';card.append(link);
    card.append(node('div',units(w.eth_wei)+' ETH','money'),node('div',units(w.pons_units,4)+' PONS','money'));
    const t=h?.telemetry?.find(t=>t.id===w.id),brain=node('div','','neural');
