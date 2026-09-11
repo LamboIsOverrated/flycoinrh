@@ -66,6 +66,8 @@ class Garden:
         funded=e.meta('initial_funding')
         ready=backup_ready(e.wallets) and e.cfg['broadcast_enabled']
         if not ready:self.status='waiting_for_backup' if not backup_ready(e.wallets) else 'observing'
+        elif not funded and any(int(e.rpc.call('eth_getTransactionCount',[r['address'],'latest']),16) for r in rows):
+            self.status='recovery_required'
         elif not funded and not e.funding_matches(rows):self.status='waiting_for_funding'
         else:
             e.gate();e.rebroadcast()
@@ -87,6 +89,8 @@ class Garden:
                                          'input_inventory':other,'margin':0,'token_exposure':value/max(1,value+row['eth_wei'])},self.round)
             t.update({'id':i,'measured_at':time.time(),'observation_block':row['block']})
             telemetry.append(t)
+            self.telemetry=telemetry+[old for old in self.telemetry if old['id']>i]
+            self.publish(rows)
             previous=e.meta('worth-'+str(i))
             worth=row['eth_wei']+value
             if previous is not None:self.brains.reward(i,(worth-previous)/10**18)

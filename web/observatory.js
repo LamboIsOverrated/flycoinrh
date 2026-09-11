@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const node=(tag,value,cls)=>{const n=document.createElement(tag);n.textContent=value;if(cls)n.className=cls;return n;};
 const units=(s,d=6)=>(Number(s)/1e18).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
 const age=t=>Math.max(0,Math.floor(Date.now()/1000-t));
-const phases={starting:'The garden is waking up',observing:'Observing the chain',waiting_for_backup:'Waiting for wallet backup',waiting_for_funding:'Waiting for funding',deploying:'Preparing the garden economy',running:'The garden is running',stopped:'The garden is paused for a safety check'};
+const phases={recovery_required:'Recovering the garden’s saved transaction history',starting:'The garden is waking up',observing:'Observing the chain',waiting_for_backup:'Waiting for wallet backup',waiting_for_funding:'Waiting for funding',deploying:'Preparing the garden economy',running:'The garden is running',stopped:'The garden is paused for a safety check'};
 const actions={produce:['Workshop','Selected resource production'],harvest:['Gathering ground','Selected resource gathering'],buy_input:['Exchange','Selected a resource purchase'],inspect_market:['PONS lookout','Selected a market inspection']};
 const journal=new Map();let lastData=null,lastRefresh=0,busy=false;
 function record(key,time,text,kind='observation',hash=null){if(!journal.has(key))journal.set(key,{time,text,kind,hash});}
@@ -16,7 +16,7 @@ function renderJournal(){
 function clock(){
  if(!lastData)return;
  const h=lastData.heartbeat,fresh=h&&age(h.observed_at)<360;
- $('live-clock').textContent='Chain observed '+age(lastData.observed_at)+'s ago · '+(h?'Runner reported '+age(h.observed_at)+'s ago':'No runner report')+' · next check in '+Math.max(0,20-age(lastRefresh))+'s';
+ $('live-clock').textContent='Chain observed '+age(lastData.observed_at)+'s ago · '+(h?'Runner reported '+age(h.observed_at)+'s ago':'No runner report')+' · next check in '+Math.max(0,5-age(lastRefresh))+'s';
  if(!fresh){$('phase').textContent='Runner offline or heartbeat unavailable';$('narration').textContent='Waiting for a fresh runner report. Last observations remain below.';}
  document.querySelectorAll('[data-measured]').forEach(el=>{const seconds=age(Number(el.dataset.measured));el.textContent='Measured '+seconds+'s ago'+(seconds>=600?' · stale':'');});
  document.querySelectorAll('.fly[data-measured-at]').forEach(el=>el.classList.toggle('outdated',age(Number(el.dataset.measuredAt))>=600));
@@ -62,8 +62,8 @@ async function refresh(){
   }
   const measured=(h?.telemetry||[]).filter(t=>age(t.measured_at)<600);
   const pending=d.transactions.filter(t=>['pending','confirming'].includes(t.status));
-  $('narration').textContent=!fresh?'Waiting for a fresh runner report.':h.status!=='running'?(phases[h.status]+'. '+(h.status==='deploying'?'The shared economy is being prepared.':h.status==='stopped'?'Execution is paused; chain observations continue.':'The flies are observing while activation checks finish.')):pending.length?pending.length+' transaction'+(pending.length===1?' is':'s are')+' awaiting confirmation.':measured.length+' flies have recent measured decisions. Watching for the next on-chain action.';
+  $('narration').textContent=!fresh?'Waiting for a fresh runner report.':h.status!=='running'?(phases[h.status]+'. '+(h.status==='recovery_required'?'Funding is present. Previous wallet transactions were detected, but the saved journal is unavailable. Trading is paused until recovery.':h.status==='deploying'?'The shared economy is being prepared.':h.status==='stopped'?'Execution is paused; chain observations continue.':'The flies are observing while activation checks finish.')):pending.length?pending.length+' transaction'+(pending.length===1?' is':'s are')+' awaiting confirmation.':measured.length+' flies have recent measured decisions. Watching for the next on-chain action.';
   renderJournal();clock();
  }catch(error){document.body.classList.add('stale');$('connection').textContent='Chain connection unavailable';$('error').textContent=error.message;$('narration').textContent='Live connection interrupted. Displayed observations may be stale.';}finally{busy=false;}
 }
-refresh();setInterval(refresh,20000);
+refresh();setInterval(refresh,5000);

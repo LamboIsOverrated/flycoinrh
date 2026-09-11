@@ -19,7 +19,7 @@ class Observatory:
     def status(self):
         with self.lock:
             if self.cached is not None and time.monotonic() - self.cache_at < 15:
-                return self.cached
+                return {**self.cached, 'heartbeat': self.heartbeat()}
             rpc = self.rpc_factory()
             try:
                 result = self.read(rpc)
@@ -27,6 +27,18 @@ class Observatory:
                 rpc.session.close()
             self.cached, self.cache_at = result, time.monotonic()
             return result
+
+    def heartbeat(self):
+        path = self.root / '.garden/live-status.json'
+        if not path.exists():
+            return None
+        stored = json.loads(path.read_text(encoding='utf-8'))
+        result = {k: stored.get(k) for k in ('observed_at', 'status', 'round')}
+        result.update(backup_ready=stored.get('backup_ready') is True, enabled=stored.get('enabled') is True,
+                      error='Runner paused after a safety or connection check' if stored.get('error') else None,
+                      telemetry=[{k: t.get(k) for k in ('id', 'measured_at', 'firing', 'neurons', 'action', 'observation_block')}
+                                 for t in stored.get('telemetry', [])[:10]])
+        return result
 
     def read(self, rpc):
         rpc.validate_chain()
