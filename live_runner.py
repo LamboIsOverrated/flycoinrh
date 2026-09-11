@@ -15,7 +15,11 @@ from live_execution import Execution, backup_ready, ROOT, TOKEN, ROUTER, sell_qu
 
 class Garden:
     def __init__(self):
-        self.execution=Execution();self.brains=None;self.brain_error=None
+        if os.name!='nt':
+            from cloud_wallets import CloudWallets
+            self.execution=Execution(wallets=CloudWallets())
+        else:self.execution=Execution()
+        self.brains=None;self.brain_error=None
         self.db=self.execution.db
         self.db.execute('CREATE TABLE IF NOT EXISTS brains (id INTEGER PRIMARY KEY, state BLOB NOT NULL)')
         self.db.commit()
@@ -45,8 +49,10 @@ class Garden:
         # Wallet amounts are read independently by the website; never accept paper fields.
         target=ROOT/'.garden/live-status.json';temp=target.with_suffix('.tmp')
         temp.write_text(json.dumps(state),encoding='utf-8');os.replace(temp,target)
-        if settings_path.exists():
-            settings=json.loads(settings_path.read_text())
+        settings=json.loads(settings_path.read_text()) if settings_path.exists() else {
+            'url':os.getenv('GARDEN_SITE_URL',''), 'publisher_key':os.getenv('GARDEN_PUBLISHER_KEY',''),
+            'site_token':os.getenv('GARDEN_SITE_TOKEN','')}
+        if all(settings.get(k) for k in ['url','publisher_key','site_token']):
             try:
                 r=requests.post(settings['url']+'/api/heartbeat',json=state,headers={
                     'Authorization':'Bearer '+settings['publisher_key'],
@@ -141,12 +147,22 @@ class Garden:
             self.stop.wait(120)
 
 def main():
-    import msvcrt
+    (ROOT/'.garden').mkdir(exist_ok=True)
     lock=open(ROOT/'.garden/live.lock','a+b');lock.seek(0);lock.write(b'0');lock.flush();lock.seek(0)
-    try:msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1)
+    try:
+        if os.name=='nt':
+            import msvcrt
+            msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1)
+        else:
+            import fcntl
+            fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
     except OSError:raise SystemExit('The garden service is already running')
     garden=Garden()
-    try:garden.run()
+    try:
+        if os.getenv('PORT'):
+            from cloud_health import start_health
+            start_health(garden)
+        garden.run()
     finally:garden.execution.db.close();lock.close()
 
 if __name__=='__main__':main()

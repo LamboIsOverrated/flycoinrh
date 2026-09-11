@@ -1,28 +1,32 @@
-# The fly, on a machine that stays on.
-#
-# One service: the brain, a headless Chromium it drives, and the socket the
-# public site watches. No wallet and no secrets - the roaming browser has never
-# had a key and this image has nowhere to put one.
-
-FROM python:3.12-slim
-
-ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    FLY_ALLOW_BROWSER=1 \
-    FLY_HOST=0.0.0.0
-
+# Clean GitHub builds obtain public data themselves. No local vault or data COPY.
+FROM python:3.12-slim AS dependencies
+ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
+COPY requirements-pilot.txt ./
+RUN pip install --no-cache-dir -r requirements-pilot.txt
 
-COPY requirements-roam.txt .
-RUN pip install -r requirements-roam.txt \
- && python -m playwright install --with-deps chromium
+FROM dependencies AS connectome
+COPY fetch_connectome.py build_graph.py ./
+RUN python fetch_connectome.py && python build_graph.py
 
-# the connectome, derived once from Janelia's CC-BY release, and the learning
-# the fly had already done before it moved house
-COPY build/ build/
-COPY data/ data/
+FROM node:22-slim AS contracts
+WORKDIR /compiler
+RUN npm install --no-audit --no-fund solc@0.8.30
+COPY contracts/ ./contracts/
+COPY compile-cloud-contracts.cjs ./
+RUN node compile-cloud-contracts.cjs
 
+FROM dependencies AS garden
+ENV PORT=8080
+COPY --from=connectome /app/build/graph.npz ./build/graph.npz
+COPY --from=connectome /app/data/body-annotations.feather ./data/body-annotations.feather
+COPY --from=connectome /app/data/sources.json ./data/sources.json
+COPY --from=contracts /compiler/build/FlyGarden.json ./build/FlyGarden.json
+COPY --from=contracts /compiler/build/QuoteProbe.json ./build/QuoteProbe.json
 COPY *.py ./
-COPY web/ web/
-
-CMD ["python", "roam.py"]
+COPY pilot_config.json ./
+COPY contracts/ ./contracts/
+COPY web/wallets.json ./web/wallets.json
+RUN mkdir -p /app/.garden
+EXPOSE 8080
+CMD ["python", "-u", "live_runner.py"]

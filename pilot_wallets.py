@@ -20,7 +20,8 @@ class Blob(ctypes.Structure):
 
 def protect(value, decrypt=False):
     if os.name != 'nt':
-        raise RuntimeError('This vault requires Windows DPAPI; no plaintext fallback')
+        from cloud_wallets import protect_state
+        return protect_state(value,decrypt)
     buf = (ctypes.c_ubyte * len(value)).from_buffer_copy(value)
     source, target = Blob(len(value), buf), Blob()
     crypto = ctypes.WinDLL('crypt32', use_last_error=True)

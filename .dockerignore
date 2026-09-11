@@ -1,14 +1,12 @@
-.env
-.env.*
-.git
-__pycache__/
-*.pyc
-*.mp4
-*.webm
-assets/
-site/
-data/*
-!data/body-annotations.feather
-build/*
-!build/graph.npz
-!build/mb_gains.npz
+# An allowlist keeps credentials, Windows vaults, downloaded data and local state out.
+**
+!Dockerfile
+!.dockerignore
+!requirements-pilot.txt
+!*.py
+!pilot_config.json
+!compile-cloud-contracts.cjs
+!contracts/
+!contracts/*.sol
+!web/
+!web/wallets.json

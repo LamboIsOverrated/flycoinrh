@@ -29,6 +29,8 @@ def data(sig,types=(),values=()):
     return '0x'+(keccak(text=sig)[:4]+encode(list(types),list(values))).hex()
 
 def backup_ready(wallets=None,root=ROOT):
+    if wallets is not None and hasattr(wallets,'backup_verified'):
+        return wallets.backup_verified()
     try:
         proof=json.loads((root/'.garden/backup-proof.json').read_text())
         path=root/'.garden/backups'/proof['filename']
@@ -39,6 +41,7 @@ def backup_ready(wallets=None,root=ROOT):
 
 class Execution:
     def __init__(self,rpc=None,wallets=None,path=None,config=None):
+        (ROOT/'.garden').mkdir(exist_ok=True)
         self.rpc=rpc or Rpc();self.wallets=wallets or Wallets();self.cfg=config or load_config()
         self.db=sqlite3.connect(path or ROOT/'.garden/live.sqlite',check_same_thread=False)
         self.db.row_factory=sqlite3.Row
