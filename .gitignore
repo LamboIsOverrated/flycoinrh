@@ -14,6 +14,9 @@ __pycache__/
 *.pyc
 *.mp4
 *.webm
+.venv/
+.garden/
+vendor/
 
 # trained gains are small and reproducible, but they ARE a result - keep them
 !build/gains_ui.npz

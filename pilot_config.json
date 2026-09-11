@@ -1,0 +1,15 @@
+{
+  "chain_id": 4663,
+  "broadcast_enabled": false,
+  "total_budget_wei": "10000000000000000",
+  "per_fly_budget_wei": "1000000000000000",
+  "gas_reserve_wei": "200000000000000",
+  "max_trade_wei": "100000000000000",
+  "max_slippage_bps": 100,
+  "max_drawdown_bps": 2000,
+  "max_quote_age_seconds": 30,
+  "max_total_fee_bps": 500,
+  "factory": "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e",
+  "verified_factory_codehash": "0x89a27da6f703e0a7cdd4f233e7cb57604ff75b164530962d3ff7cf8483a67d84",
+  "approved_tokens": []
+}

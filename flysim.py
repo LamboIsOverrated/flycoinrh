@@ -85,7 +85,7 @@ class FlyBrain:
 
     # ---- simulation ------------------------------------------------------
 
-    def run(self, drive, steps, gains=None, record=None, seed=0, spike_log=False):
+    def run(self, drive, steps, gains=None, record=None, seed=0, spike_log=False, state=None):
         """
         drive     : dict {neuron_index_array: rate_hz} external Poisson input
         steps     : number of dt steps
@@ -98,8 +98,10 @@ class FlyBrain:
         rng = np.random.default_rng(seed)
         n = self.n
 
-        v = np.full(n, p.v_rest, dtype=np.float32)
-        refr = np.zeros(n, dtype=np.int32)
+        v = np.full(n, p.v_rest, dtype=np.float32) if state is None or 'v' not in state else state['v'].copy()
+        refr = np.zeros(n, dtype=np.int32) if state is None or 'refr' not in state else state['refr'].copy()
+        if v.shape != (n,) or refr.shape != (n,):
+            raise ValueError('Neural state does not match this connectome')
 
         if gains is None:
             gain_per_neuron = np.ones(n, dtype=np.float32)
@@ -178,6 +180,8 @@ class FlyBrain:
 
             refr -= 1
 
+        if state is not None:
+            state['v'], state['refr'] = v, refr
         secs = steps * p.dt / 1000.0
         out = {k: c / secs for k, c in counts.items()}
         out["_total_hz"] = total_spikes / secs / n
