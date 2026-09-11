@@ -27,7 +27,7 @@ COPY *.py ./
 COPY pilot_config.json ./
 COPY contracts/ ./contracts/
 COPY web/wallets.json ./web/wallets.json
-COPY web/index.html web/observatory.css web/observatory.js ./web/
+COPY web/index.html web/observatory.css web/observatory.js web/fly-logo.png ./web/
 RUN mkdir -p /app/.garden
 EXPOSE 8080
 CMD ["python", "-u", "live_runner.py"]

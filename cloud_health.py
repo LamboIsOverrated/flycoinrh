@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 from cloud_observatory import Observatory, ROOT
 
-ASSETS = {'/': ('index.html', 'text/html; charset=utf-8'),
+ASSETS = {'/fly-logo.png': ('fly-logo.png', 'image/png'), '/': ('index.html', 'text/html; charset=utf-8'),
           '/index.html': ('index.html', 'text/html; charset=utf-8'),
           '/observatory.css': ('observatory.css', 'text/css; charset=utf-8'),
           '/observatory.js': ('observatory.js', 'text/javascript; charset=utf-8')}
