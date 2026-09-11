@@ -27,8 +27,11 @@ def create_backup(password):
 
 def main():
     import sys
-    if '--stdin-password' in sys.argv:
-        password=sys.stdin.readline().rstrip('\r\n')
+    if '--stdin-base64' in sys.argv:
+        password=base64.b64decode(sys.stdin.buffer.readline().strip(),validate=True).decode('utf-8')
+    elif '--stdin-password' in sys.argv:
+        # Older dialog versions must be reopened to avoid Windows code-page loss.
+        raise ValueError('Reopen Backup-Garden.ps1 to use the current backup dialog')
     else:
         password=getpass('Choose a backup password (at least 16 characters): ')
         if password!=getpass('Repeat the backup password: '):raise ValueError('Passwords must match')

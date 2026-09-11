@@ -21,11 +21,12 @@ $save.Add_Click({
  try {
   $info=[System.Diagnostics.ProcessStartInfo]::new()
   $info.FileName="$PSScriptRoot\.venv\Scripts\python.exe"
-  $info.Arguments='"'+$PSScriptRoot+'\backup_wallets.py" --stdin-password'
+  $info.Arguments='"'+$PSScriptRoot+'\backup_wallets.py" --stdin-base64'
   $info.UseShellExecute=$false; $info.CreateNoWindow=$true
   $info.RedirectStandardInput=$true; $info.RedirectStandardOutput=$true; $info.RedirectStandardError=$true
   $process=[System.Diagnostics.Process]::Start($info)
-  $process.StandardInput.WriteLine($first.Password); $process.StandardInput.Close()
+  $transport=[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($first.Password))
+  $process.StandardInput.WriteLine($transport); $process.StandardInput.Close(); $transport=$null
   $first.Clear(); $second.Clear()
   $output=$process.StandardOutput.ReadToEnd(); $failure=$process.StandardError.ReadToEnd(); $process.WaitForExit()
   if ($process.ExitCode -ne 0) { throw 'Backup failed; no funding is enabled.' }
